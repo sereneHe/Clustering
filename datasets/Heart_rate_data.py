@@ -40,17 +40,17 @@ def creat_heartrate(dataset, as_series=False):
     -------
     dataset : array-like, shape=(n_samples,)
         The heartrate vector.
-    """
-
+        
     Examples
     --------
-
     >>> from datetime import datetime, timedelta
     >>> import pandas as pd
     >>> import numpy as np
-    >>> from datasets import creat_heartrate
     >>> dataset = pd.read_csv('HeartRate_MIT.csv',sep=',',header='infer')
     >>> creat_heartrate(dataset)
+    --------
+    
+    """
     
     # Define the start and end time
     start_time = datetime(2023, 10, 14, 0, 0, 0)  # Start at midnight
@@ -71,22 +71,23 @@ def creat_heartrate(dataset, as_series=False):
         current_time += time_step
         n += 1
     
+    '''
     # Print the time series
     for timestamp in time_series:
         print(timestamp)
+    '''
     Dataa=pd.DataFrame(time_series,columns=['Time'])
     DataT=pd.DataFrame(time_series,columns=['Time'])
     for col in range(len(dataset.columns)):
         data= dataset[dataset.columns[col]] 
         data= np.array(data).reshape(3,600)
-        print(data)
-        #np.asarray(ds1.outputs).reshape(-1).tolist()
+        # print(data)
+        # np.asarray(ds1.outputs).reshape(-1).tolist()
         for n in range(3):
             if col ==0:
                 colname = ['Health_'+str(n+1)]
             else:
                 colname = ['Disease_'+str(n+1)]
-            #Data=pd.DataFrame(D,columns=['Patient_'+str(n+1)+'_HBP', 'Patient_'+str(n+1)+'_BloodPressure'])
             Data=pd.DataFrame(np.array(pd.DataFrame(data).iloc[n,:]),columns=colname)
             Dataa=pd.concat([Dataa, Data], axis=1)
         Dataaa=pd.concat([DataT, Dataa], axis=1)
@@ -95,4 +96,3 @@ def creat_heartrate(dataset, as_series=False):
     data = pd.DataFrame(data = Dataaa.T.drop_duplicates().T )
     data.to_csv('HeartRate_MIT_Test.csv',index=False) 
     return data
-
