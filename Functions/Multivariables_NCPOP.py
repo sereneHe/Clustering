@@ -1,4 +1,4 @@
-class NCPOLR(object):
+class Multi_Multi_NCPOLR(object):
     """Estimator based on NCPOP Regressor
 
     References
@@ -8,7 +8,6 @@ class NCPOLR(object):
     
     Examples
     --------
-    >>> from ..Clustering.datasets import load_heartrate
     >>> import pandas as pd
     >>> from itertools import product
     >>> import sys
@@ -19,16 +18,17 @@ class NCPOLR(object):
     >>> from ncpol2sdpa import*
     >>> import numpy as np
     >>> from math import sqrt
+    >>> from ..Clustering.datasets import load_heartrate    
     >>> from sympy.physics.quantum import HermitianOperator, Operator    
     >>> Test_Data = load_heartrate().reshape(600,3)
     >>> m= len(np.transpose(X))
     >>> level = 1
     >>> N = len(np.transpose(Test_Data))
-    >>> NCPOLR().estimate(Test_Data,N,level)
+    >>> Multi_NCPOLR().estimate(Test_Data,N,level)
     """
     
     def __init__(self, **kwargs):
-        super(NCPOLR, self).__init__()
+        super(Multi_NCPOLR, self).__init__()
     
     
     def generate_multioperators(self, name, n_vars, m_vars, hermitian=None, commutative=False):
@@ -112,12 +112,12 @@ class NCPOLR(object):
         Y = np.transpose(Y)
 
         # Decision Variables
-        G = NCPOLR().generate_multioperators("G", n_vars=n, m_vars=n, hermitian=True, commutative=False)
-        Fdash = NCPOLR().generate_multioperators("Fdash", n_vars=m, m_vars=n, hermitian=True, commutative=False)
-        phi = NCPOLR().generate_multioperators("phi", n_vars=n, m_vars=T+1, hermitian=True, commutative=False)
-        q = NCPOLR().generate_multioperators("q", n_vars=n, m_vars=T, hermitian=True, commutative=False)
-        p = NCPOLR().generate_multioperators("p", n_vars=m, m_vars=T, hermitian=True, commutative=False)
-        f = NCPOLR().generate_multioperators("f", n_vars=m, m_vars=T, hermitian=True, commutative=False)
+        G = Multi_NCPOLR().generate_multioperators("G", n_vars=n, m_vars=n, hermitian=True, commutative=False)
+        Fdash = Multi_NCPOLR().generate_multioperators("Fdash", n_vars=m, m_vars=n, hermitian=True, commutative=False)
+        phi = Multi_NCPOLR().generate_multioperators("phi", n_vars=n, m_vars=T+1, hermitian=True, commutative=False)
+        q = Multi_NCPOLR().generate_multioperators("q", n_vars=n, m_vars=T, hermitian=True, commutative=False)
+        p = Multi_NCPOLR().generate_multioperators("p", n_vars=m, m_vars=T, hermitian=True, commutative=False)
+        f = Multi_NCPOLR().generate_multioperators("f", n_vars=m, m_vars=T, hermitian=True, commutative=False)
         
 
         # Objective
