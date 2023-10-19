@@ -1,4 +1,4 @@
-class Single_NCPOLR(object):
+class Single_Single(object):
     """Estimator based on NCPOP Regressor
 
     References
@@ -7,32 +7,22 @@ class Single_NCPOLR(object):
     
     Examples
     --------
-    >>> 
-import pandas as pd
-import sys
-sys.path.append("/home/zhouqua1") 
-sys.path.append("/home/zhouqua1/NCPOP") 
-from inputlds import*
-from functions import*
-from ncpol2sdpa import*
-import numpy as np
-
-level = 1
-
-m= len(np.transpose(Y))
-print(Y)
-X_Group0 = Y.iloc[:,np.flatnonzero(L)]
-X_Group0 = np.array(X_Group0).reshape(-1)
-print(X_Group0)
-y_pred = NCPOLR().estimate(X_Group0,level)
-
-
-
-    
+    >>> import pandas as pd
+    >>> import sys
+    >>> sys.path.append("/home/zhouqua1") 
+    >>> sys.path.append("/home/zhouqua1/NCPOP") 
+    >>> from inputlds import*
+    >>> from functions import*
+    >>> from ncpol2sdpa import*
+    >>> import numpy as np
+    >>> from ..Clustering.datasets import load_heartrate    
+    >>> Test_Data = load_heartrate()
+    >>> level = 1
+    >>> Single_NCPOLR().estimate(Test_Data,level)
     """
     
     def __init__(self, **kwargs):
-        super(NCPOLR, self).__init__()
+        super(Single_NCPOLR, self).__init__()
         
     def estimate(self, Y, level):
         """Fit Estimator based on NCPOP Regressor model and predict y or produce residuals.
