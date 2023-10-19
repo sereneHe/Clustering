@@ -9,7 +9,18 @@ class NCPOLR(object):
     
     Examples
     --------
-    >>> from Clustering.datasets import load_heartrate
+    >>> from ..Clustering.datasets import load_heartrate
+    >>> import pandas as pd
+    >>> from itertools import product
+    >>> import sys
+    >>> sys.path.append("/home/zhouqua1") 
+    >>> sys.path.append("/home/zhouqua1/NCPOP") 
+    >>> from inputlds import*
+    >>> from functions import*
+    >>> from ncpol2sdpa import*
+    >>> import numpy as np
+    >>> from math import sqrt
+    >>> from sympy.physics.quantum import HermitianOperator, Operator    
     >>> Test_Data = load_heartrate().reshape(600,3)
     >>> m= len(np.transpose(X))
     >>> level = 1
