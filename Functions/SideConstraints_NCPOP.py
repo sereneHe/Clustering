@@ -9,8 +9,12 @@ class NCPOLR(object):
     
     Examples
     --------
-
-    >>> NCPOLR().estimate(X_Group,N,level)
+    >>> from Clustering.datasets import load_heartrate
+    >>> Test_Data = load_heartrate().reshape(600,3)
+    >>> m= len(np.transpose(X))
+    >>> level = 1
+    >>> N = len(np.transpose(Test_Data))
+    >>> NCPOLR().estimate(Test_Data,N,level)
     """
     
     def __init__(self, **kwargs):
