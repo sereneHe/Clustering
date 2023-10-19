@@ -1,4 +1,4 @@
-class Single_Single(object):
+class Single_NCPOLR(object):
     """Estimator based on NCPOP Regressor
 
     References
