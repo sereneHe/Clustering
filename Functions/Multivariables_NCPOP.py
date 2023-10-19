@@ -1,4 +1,4 @@
-class Multi_Multi_NCPOLR(object):
+class Multi_NCPOLR(object):
     """Estimator based on NCPOP Regressor
 
     References
@@ -9,7 +9,6 @@ class Multi_Multi_NCPOLR(object):
     Examples
     --------
     >>> import pandas as pd
-    >>> from itertools import product
     >>> import sys
     >>> sys.path.append("/home/zhouqua1") 
     >>> sys.path.append("/home/zhouqua1/NCPOP") 
@@ -17,11 +16,9 @@ class Multi_Multi_NCPOLR(object):
     >>> from functions import*
     >>> from ncpol2sdpa import*
     >>> import numpy as np
-    >>> from math import sqrt
     >>> from ..Clustering.datasets import load_heartrate    
     >>> from sympy.physics.quantum import HermitianOperator, Operator    
     >>> Test_Data = load_heartrate().reshape(600,3)
-    >>> m= len(np.transpose(X))
     >>> level = 1
     >>> N = len(np.transpose(Test_Data))
     >>> Multi_NCPOLR().estimate(Test_Data,N,level)
@@ -112,12 +109,12 @@ class Multi_Multi_NCPOLR(object):
         Y = np.transpose(Y)
 
         # Decision Variables
-        G = Multi_NCPOLR().generate_multioperators("G", n_vars=n, m_vars=n, hermitian=True, commutative=False)
-        Fdash = Multi_NCPOLR().generate_multioperators("Fdash", n_vars=m, m_vars=n, hermitian=True, commutative=False)
-        phi = Multi_NCPOLR().generate_multioperators("phi", n_vars=n, m_vars=T+1, hermitian=True, commutative=False)
-        q = Multi_NCPOLR().generate_multioperators("q", n_vars=n, m_vars=T, hermitian=True, commutative=False)
-        p = Multi_NCPOLR().generate_multioperators("p", n_vars=m, m_vars=T, hermitian=True, commutative=False)
-        f = Multi_NCPOLR().generate_multioperators("f", n_vars=m, m_vars=T, hermitian=True, commutative=False)
+        G = self.generate_multioperators("G", n_vars=n, m_vars=n, hermitian=True, commutative=False)
+        Fdash = self.generate_multioperators("Fdash", n_vars=m, m_vars=n, hermitian=True, commutative=False)
+        phi = self.generate_multioperators("phi", n_vars=n, m_vars=T+1, hermitian=True, commutative=False)
+        q = self.generate_multioperators("q", n_vars=n, m_vars=T, hermitian=True, commutative=False)
+        p = self.generate_multioperators("p", n_vars=m, m_vars=T, hermitian=True, commutative=False)
+        f = self.generate_multioperators("f", n_vars=m, m_vars=T, hermitian=True, commutative=False)
         
 
         # Objective
