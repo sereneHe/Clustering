@@ -3,7 +3,19 @@ class SingleLDS_Gurobi(object):
     """
     
     def __init__(self, **kwargs):
-        super(SingleLDS, self).__init__()
+        super(SingleLDS_Gurobi, self).__init__()
+        
+    def load_heartrate(as_series=False):
+        rslt = np.array([
+            84.2697, 84.2697, 84.0619, 85.6542, 87.2093, 87.1246,
+            86.8726, 86.7052, 87.5899, 89.1475, 89.8204, 89.8204,
+            90.4375, 91.7605, 93.1081, 94.3291, 95.8003, 97.5119,
+            98.7457, 98.904, 98.3437, 98.3075, 98.8313, 99.0789,
+            98.8157, 98.2998, 97.7311, 97.6471, 97.7922])
+
+        if as_series:
+            return pd.Series(rslt)
+        return rslt
     
     def estimate(self, X, K):
         """Fit Estimator based on NCPOP Regressor model and predict y or produce residuals.
@@ -24,106 +36,114 @@ class SingleLDS_Gurobi(object):
         obj: num
             Objective value in optima
 
-        Example
+
+        Examples
         -------
         >>> import gurobipy as gp
         >>> from gurobipy import GRB
         >>> import pandas as pd
         >>> import numpy as np
-
-
-        >>> Rawdata = pd.read_csv('HeartRate_MIT_Test.csv',sep=',',header='infer',nrows=6)
-        >>> Y = pd.DataFrame(Rawdata.drop('Time',axis=1))
-        >>> print(Y)
-        >>> # k cluster no.
-
-        >>> test_data = Cluster_Gurobi().load_heartrate()
-        >>> y_pred = Cluster_Gurobi().estimate(Y,K=2)
-
+        >>> import sys
+        
+        >>> test_data = SingleLDS_Gurobi().load_heartrate()
+        >>> #print(test_data)
+        >>> y_pred = SingleLDS_Gurobi().estimate(test_data,K=2)
+        
         """
 
-        T = len(X)
-        L = len(np.transpose(X))
-        X = list(np.array(X).reshape(-1))
+        #X = list(np.array(X).reshape(-1))
         
         # Create a new model
-        m = gp.Model()
-
+        e = gp.Env()
+        e.setParam('TimeLimit', 1*10)
+        m = gp.Model(env=e)
+        N = len(X)
+        L = 4
+        print('N,X')
 
         # Create variables
-        G0 = m.addVar(vtype='C', name="G0")
-        G1 = m.addVar(vtype='C', name="G1")
-        Fdash0 = m.addVar(vtype='C', name="Fdash0")
-        Fdash1 = m.addVar(vtype='C', name="Fdash1")
-        #model.addVars(2, 3)
-        #model.addVars([0, 1, 2], ['m0', 'm1', 'm2'])
-        phi = m.addVars(L*(T+1), name="phi", vtype='C')
-        q = m.addVars(L*T, name="q", vtype='C')
-        p = m.addVars(L*T, name="p", vtype='C')
-        f = m.addVars(L*T, name="f", vtype='C')
+        G = m.addVar(vtype='C', name="G")
+        Fdash = m.addVar(vtype='C', name="Fdash")
+        phi = m.addVars((N+1), name="phi", vtype='C')
+        q = m.addVars(N, name="q", vtype='C')
+        p = m.addVars(N, name="p", vtype='C')
+        f = m.addVars(N, name="f", vtype='C')
         l = m.addVars(L, name="l", vtype='B')
         print("This model has",len(phi)+len(q)+len(p)+len(f)+len(l)+4,"decision variables.")
-        #+len(G0)+len(G1)+len(Fdash0)+len(Fdash1)
         m.update() 
-        '''
-        
-        #Create decision variables for the foods to buy
-        buy=m.addVars(foods,name="buy")
-        #也可以是：
-        # buy=[]
-        # for f in foods:
-        #     buy[f]=m.addVar(name=f)
 
-        #For recycling
-        # m.setObjective(sum(buy[f]*cost[f] for f in foods),GRB.MINIMIZE)
-        
-        x = MODEL.addVars(20, 8, vtype=gurobipy.GRB.BINARY)
-        # 1
-        for i in range(20):
-            MODEL.addConstr(x.sum(i, "*") <= 1)
-        # 2
-        MODEL.addConstrs(x.sum(i, "*") <= 1 for i in range(20))
-
-        # use '*'  as list[:]
-        ((X-f)**2.sum(t, "*"))*(1-l).sum(i, "*")
-        
-        obj = 0
         # Set objective function
-        for t in range(T*L):
-            objj = (((X-f)**2).sum(t, "*"))
-            obj = obj + objj '''
-        
-        obj = gp.quicksum((X[t]-f[t])*(X[t]-f[t]) for t in range(L*T)) 
-        #obj += gp.quicksum(l[i]*(X[t]-f[t])*(X[t]-f[t]) for t in range(L*T) for i in range(L)) 
-        obj += gp.quicksum(0.0005*p[t]*p[t] for t in range(L*T)) 
-        obj += gp.quicksum(0.0005*q[t]*q[t] for t in range(L*T)) 
+        obj = gp.quicksum((X[t]-f[t])*(X[t]-f[t]) for t in range(N))  
+        obj += gp.quicksum(p[t]*p[t] for t in range(N)) 
+        obj += gp.quicksum(q[t]*q[t] for t in range(N)) 
 
-        #sum(( X[t]-f[t])**2* (1-l[i]) + l[i]*(X[t]-f[t])**2) + 0.0005*sum(p[t]**2) + 0.0001*sum(q[t]**2)  
         m.setObjective(obj, GRB.MINIMIZE)
 
-        #m.addConstrs((f[t]* (1-l[i]) + f[t]*l[i] == Fdash0*phi[t+1]* (1-l[i]) + Fdash1*phi[t+1]*l[i] + p[t]*(1-l[i]) + p[t]*l[i]) for t in range(L*T) for i in range(L))  
-
-        #m.addConstrs((phi[t+1]* (1-l[i]) + phi[t+1]* l[i]== G0*phi[t]* (1-l[i])+ G0*phi[t]*i + q[t]* (1-l[i])+ q[t]*l[i]) for t in range(L*T) for i in range(L))  
-
-        #m.update()
-        m.addConstrs((f[t] == Fdash0*phi[t+1] + p[t]) for t in range(L*T))  
-
-        m.addConstrs((phi[t+1] == G0*phi[t] + q[t]) for t in range(L*T))  
-
+        #AddConstrs
+        m.addConstrs((f[t] == Fdash*phi[t+1] + p[t]) for t in range(N))  
+        m.addConstrs((phi[t+1] == G*phi[t] + q[t]) for t in range(N))  
         m.update()
-        
-        
-        '''
-        for i in range(L):
-            for t in range(L*T):
-                m.addConstr((f[t]* (1-l[i]) + f[t]*l[i] == Fdash0*phi[t+1]* (1-l[i]) + Fdash1*phi[t+1]*l[i] + p[t]*(1-l[i]) + p[t]*l[i]))
-                m.addConstr((phi[t+1]* (1-l[i]) + phi[t+1]* l[i])== G0*phi[t]* (1-l[i])+ G0*phi[t]*i + q[t]* (1-l[i])+ q[t]*l[i])
-        '''
-        # Solve it!
+
         m.Params.NonConvex = 2
+        
+        #solve
         m.optimize()
-
+        
+        m.setParam(GRB.Param.OutputFlag, 0)
+        print(f"m.status is " + str(m.status))
+        print(f"GRB.Status.OPTIMAL is "+ str(GRB.Status.OPTIMAL))
+        if m.status == GRB.Status.OPTIMAL:
+            print(f"THIS IS OPTIMAL SOLUTION")
+        else:
+            print(f"THIS IS NOT OPTIMAL SOLUTION")
         print(f"Optimal objective value: {m.objVal}")
+        print(f"Solution values: paras={G.X,Fdash.X}")
+        
+        
+        data_dict = {'phi': [m.getAttr("x",phi)[h] for h in m.getAttr("x",phi)],
+                     'p': [m.getAttr("x",p)[h] for h in m.getAttr("x",p)],
+                     'q': [m.getAttr("x",q)[h] for h in m.getAttr("x",q)],
+                     'f': [m.getAttr("x",f)[h] for h in m.getAttr("x",f)],
+                     'X_Pred': [Fdash.X*m.getAttr("x",phi)[h+1]+m.getAttr("x",q)[h] for h in m.getAttr("x",f)]}
+        df = pd.DataFrame.from_dict(data_dict, orient='index').transpose()
+        
+        '''def X_Pred(row):
+               return Fdash.X*row["phi"]+row["q"]
 
+        df["X_Pred"]=df.apply(lambda row:X_Pred(row),axis=1)'''
+        df["X"]= X
+        f=m.getAttr("x",f)
+        print("\nf:")
+
+        print(df)
+
+
+        return df
+    
+        #self.printSolution()
         
-        
+    def printSolution():
+        if m.status == GRB.Status.OPTIMAL:
+            print("\nError:%g" % m.objval)
+            print("\nF:")
+            F=m.getAttr("x",F)
+            print("\nG:")
+            G=m.getAttr("x",G)
+            print("\nphi:")
+            phi=m.getAttr("x",phi)
+            print("\nq:")
+            q=m.getAttr("x",q)
+            print("\np:")
+            p=m.getAttr("x",p)
+        else:
+            print("No solution")
+
+import gurobipy as gp
+from gurobipy import GRB
+import pandas as pd
+import numpy as np
+import sys
+
+test_data = SingleLDS_Gurobi().load_heartrate()
+#print(test_data)
+y_pred = SingleLDS_Gurobi().estimate(test_data,K=2)
