@@ -35,8 +35,9 @@ class ClusterMultiLDS_Gurobi(object):
         # Create indicator variable
         nL = len(np.transpose(X))
         #L = m.addVars(1, nL, name="L", vtype='B')
-        L = tupledict({(0,0):0, (0,1): 1, (0,2): 0, (0,3): 0, (0,4): 1, (0,5): 1})
         print(L)
+        L = tupledict({(0,0):0, (0,1): 1, (0,2): 0, (0,3): 0, (0,4): 1, (0,5): 1})
+        #print(L)
         N=T*nL
         print('T is ' + str(T)+', Groups number is ' + str(nL))
         #N0 = L.sum(1, "*")
@@ -76,7 +77,9 @@ class ClusterMultiLDS_Gurobi(object):
         ###############
         X_Model0_ = L.select()*X 
         X_Model1_ = [(1-i) for i in L.select()]*X
+        print(X_Model0_,X_Model1_)
         X = np.transpose(X)
+        print(X)
         X = tupledict(X) 
         X_Model0 = pd.DataFrame(X_Model0_).loc[:, (pd.DataFrame(X_Model0_) != 0).any(axis=0)]
         X_Model1 = pd.DataFrame(X_Model1_).loc[:, (pd.DataFrame(X_Model1_) != 0).any(axis=0)]
@@ -88,9 +91,7 @@ class ClusterMultiLDS_Gurobi(object):
         X_Model0 = np.transpose(X_Model0)
         X_Model1 = np.transpose(X_Model1)
         m.update()
-        print(X_Model0,X_Model1)
     
-        
         #X = tupledict({X.index:[np.transpose(X)]})
         #X_Model0 = X.prod(L)
         #X_Model00 = X.select(L, 0)
@@ -139,48 +140,33 @@ class ClusterMultiLDS_Gurobi(object):
         print(f"Optimal objective value: {m.objVal}")
                 
         print(f"m.status is " + str(m.status))
+        print(f"GRB.OPTIMAL is "+ str(GRB.OPTIMAL))
         print(f"GRB.Status.OPTIMAL is "+ str(GRB.Status.OPTIMAL))
         if m.status == GRB.Status.OPTIMAL:
             print(f"THIS IS OPTIMAL SOLUTION")
         else:
             print(f"THIS IS NOT OPTIMAL SOLUTION")
         print(f"Optimal objective value: {m.objVal}")
-        print(f"Solution values: paras={G0.X,Fdash0.X}")
-        
-        
-        data_dict = {'phi0': [m.getAttr("x",phi0)[h] for h in m.getAttr("x",phi0)],
-                     'p0': [m.getAttr("x",p0)[h] for h in m.getAttr("x",p0)],
-                     'q0': [m.getAttr("x",q0)[h] for h in m.getAttr("x",q0)],
-                     'f0': [m.getAttr("x",f0)[h] for h in m.getAttr("x",f0)],
-                     'X_Pred0': [Fdash0.X*m.getAttr("x",phi0)[h+1]+m.getAttr("x",q0)[h] for h in m.getAttr("x",f0)],
-                    'phi1': [m.getAttr("x",phi1)[h] for h in m.getAttr("x",phi1)],
-                     'p1': [m.getAttr("x",p1)[h] for h in m.getAttr("x",p1)],
-                     'q1': [m.getAttr("x",q1)[h] for h in m.getAttr("x",q1)],
-                     'f1': [m.getAttr("x",f1)[h] for h in m.getAttr("x",f1)],
-                     'X_Pred1': [Fdash1.X*m.getAttr("x",phi1)[h+1]+m.getAttr("x",q1)[h] for h in m.getAttr("x",f1)]}
-        df = pd.DataFrame.from_dict(data_dict, orient='index').transpose()
-        
-        '''def X_Pred(row):
-               return Fdash.X*row["phi"]+row["q"]
-
-        df["X_Pred"]=df.apply(lambda row:X_Pred(row),axis=1)'''
-        df["X"]= X
-        f=m.getAttr("x",f)
-        print("\nf:")
-
-        print(df)
+        #print(f"Solution values: paras={m.getAttr("x",G0),m.getAttr("x",Fdash0)}")
+        # Print solution
+        #if m.status == GRB.OPTIMAL:
+        print(f"Optimal G0 value:")
+        print(np.array([m.getAttr("x",G0)[h] for h in m.getAttr("x",G0)]).reshape(n, n))  
+        print(f"Optimal G1 value:")
+        print(np.array([m.getAttr("x",G1)[h] for h in m.getAttr("x",G1)]).reshape(n, n)) 
+        print(f"Optimal F0 value:")
+        print(np.array([m.getAttr("x",F0)[h] for h in m.getAttr("x",F0)]).reshape(N0, n))         
+        print(f"Optimal F1 value:")
+        print(np.array([m.getAttr("x",F1)[h] for h in m.getAttr("x",F1)]).reshape(N1, n))         
+        print(f"Optimal phi0 value:")
+        print(np.array([m.getAttr("x",phi0)[h] for h in m.getAttr("x",phi0)]).reshape(n, (T+1)))
+        print(f"Optimal phi1 value:")
+        print(np.array([m.getAttr("x",phi1)[h] for h in m.getAttr("x",phi1)]).reshape(n, (T+1)))
+        print(f"Optimal f0 value:")
+        print(np.array([m.getAttr("x",f0)[h] for h in m.getAttr("x",f0)]).reshape(N0, T)) 
+        print(f"Optimal f1 value:")
+        print(np.array([m.getAttr("x",f1)[h] for h in m.getAttr("x",f1)]).reshape(N1, T))         
+    
+        #return
 
 
-        return df
-
-import gurobipy as gp
-from gurobipy import *
-import pandas as pd
-import numpy as np
-
-Rawdata = pd.read_csv('HeartRate_MIT_Test.csv',sep=',',header='infer',nrows=8)
-Y = pd.DataFrame(Rawdata.drop('Time',axis=1))
-#print(Y)
-# k cluster no.
-
-y_pred = ClusterMultiLDS_Gurobi().estimate(Y,K=2)
